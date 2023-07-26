@@ -235,6 +235,12 @@ class RecordingSensor(StatisticHelper):
                     [row for row in bosch_data.values() if row["d"] > start_time],
                     _sum,
                 )
+            else:
+                return ( 
+                    [row for row in self._bosch_object.state if row["d"] > start_time],
+                    _sum,
+                )
+
             _LOGGER.debug(
                 "Returning state to put to statistic table %s", self._bosch_object.state
             )

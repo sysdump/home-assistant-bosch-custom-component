@@ -211,6 +211,7 @@ class RecordingSensor(StatisticHelper):
             last_stats_row = self.get_last_stats_before_date(
                 last_stats=last_stats, day=start_of_day
             )
+            bosch_data_out = []
             start_time = last_stats_row.get("start")
             _sum = last_stats_row.get("sum", 0)
             if isinstance(start_time, float):
@@ -231,14 +232,17 @@ class RecordingSensor(StatisticHelper):
                 bosch_data = await self.fetch_past_data(
                     start_time=start_time, stop_time=now
                 )
-                return (
-                    [row for row in bosch_data.values() if row["d"] > start_time],
-                    _sum,
-                )
+                for row in bosch_data.values():
+                    if row["d"] > start_time:
+                        bosch_data_out.append(row)
+            else:
+                for row in self._bosch_object.state:
+                    if row["d"] > start_time:
+                        bosch_data_out.append(row)
             _LOGGER.debug(
-                "Returning state to put to statistic table %s", self._bosch_object.state
+                "Returning state to put to statistic table %s", bosch_data_out
             )
-            return self._bosch_object.state, _sum
+            return bosch_data_out, _sum
 
         if self.statistic_id in last_stats:
             all_stats, _sum = await get_last_stats_from_bosch_api()
